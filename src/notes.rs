@@ -54,9 +54,9 @@ pub fn create_note(app: &mut App) -> io::Result<()> {
 
     enable_raw_mode()?;
     let mut stdout = io::stdout();
-    // Re-enter alternate screen and mouse capture
+
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-    // Indicate we need a full redraw
+
     app.needs_redraw = true;
 
     Ok(())
@@ -92,7 +92,7 @@ pub fn edit_note(app: &mut App) -> io::Result<()> {
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-    // Indicate we need a full redraw
+
     app.needs_redraw = true;
 
     Ok(())
@@ -102,14 +102,17 @@ pub fn delete_note(app: &mut App) {
     if app.notes.is_empty() {
         return;
     }
+
     app.notes.remove(app.selected_note);
     if app.selected_note >= app.notes.len() && !app.notes.is_empty() {
         app.selected_note = app.notes.len() - 1;
     }
+
     if app.notes.is_empty() {
         app.selected_note = 0;
         app.list_scroll = 0;
     }
+
     save_notes(&app.notes);
 }
 

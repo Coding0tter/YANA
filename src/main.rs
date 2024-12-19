@@ -35,7 +35,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut last_tick = Instant::now();
 
     loop {
-        // If we need a full redraw (e.g., after exiting nvim)
         if app.needs_redraw {
             terminal.clear()?;
             app.needs_redraw = false;

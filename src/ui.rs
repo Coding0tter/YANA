@@ -1,4 +1,4 @@
-use crate::app::{App, Focus};
+use crate::app::{App, Focus, SelectedButton};
 use crate::notes::count_todos;
 use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
 use ratatui::{
@@ -9,6 +9,33 @@ use ratatui::{
     Frame,
 };
 
+const ROSEWATER: Color = Color::Rgb(220, 138, 120);
+const FLAMINGO: Color = Color::Rgb(221, 120, 120);
+const PINK: Color = Color::Rgb(234, 118, 203);
+const MAUVE: Color = Color::Rgb(136, 57, 239);
+const RED: Color = Color::Rgb(210, 15, 57);
+const MAROON: Color = Color::Rgb(230, 69, 83);
+const PEACH: Color = Color::Rgb(254, 100, 11);
+const YELLOW: Color = Color::Rgb(223, 142, 29);
+const GREEN: Color = Color::Rgb(64, 160, 43);
+const TEAL: Color = Color::Rgb(23, 146, 153);
+const SKY: Color = Color::Rgb(4, 165, 229);
+const SAPPHIRE: Color = Color::Rgb(32, 159, 181);
+const BLUE: Color = Color::Rgb(30, 102, 245);
+const LAVENDER: Color = Color::Rgb(114, 135, 253);
+const TEXT: Color = Color::Rgb(76, 79, 105);
+const SUBTEXT1: Color = Color::Rgb(92, 95, 119);
+const SUBTEXT0: Color = Color::Rgb(108, 111, 133);
+const OVERLAY2: Color = Color::Rgb(124, 127, 147);
+const OVERLAY1: Color = Color::Rgb(140, 143, 161);
+const OVERLAY0: Color = Color::Rgb(156, 160, 176);
+const SURFACE2: Color = Color::Rgb(172, 176, 190);
+const SURFACE1: Color = Color::Rgb(188, 192, 204);
+const SURFACE0: Color = Color::Rgb(204, 208, 218);
+const BASE: Color = Color::Rgb(239, 241, 245);
+const MANTLE: Color = Color::Rgb(230, 233, 239);
+const CRUST: Color = Color::Rgb(220, 224, 232);
+
 pub fn ui(f: &mut Frame, app: &App) {
     let top_layout = Layout::default()
         .direction(Direction::Vertical)
@@ -18,14 +45,12 @@ pub fn ui(f: &mut Frame, app: &App) {
     let title_line = Line::from(vec![
         Span::styled(
             " Yana ",
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
+            Style::default().fg(TEXT).add_modifier(Modifier::BOLD),
         ),
-        Span::raw(" - Yet Another Note App"),
+        Span::styled(" - Yet Another Note App", Style::default().fg(SUBTEXT0)),
     ]);
     let title_block = Paragraph::new(title_line)
-        .style(Style::default().bg(Color::Blue))
+        .style(Style::default().bg(CRUST))
         .alignment(ratatui::layout::Alignment::Center);
     f.render_widget(title_block, top_layout[0]);
 
@@ -41,22 +66,26 @@ pub fn ui(f: &mut Frame, app: &App) {
 
     render_notes(f, app, &notes_chunks);
 
+    if app.confirm_delete {
+        render_confirmation_modal(f, app);
+    }
+
     let shortcuts_text = Line::from(vec![
-        Span::styled("[q]", Style::default().fg(Color::Cyan)),
+        Span::styled("[q]", Style::default().fg(SAPPHIRE)),
         Span::raw(" Quit  "),
-        Span::styled("[c]", Style::default().fg(Color::Cyan)),
+        Span::styled("[c]", Style::default().fg(SAPPHIRE)),
         Span::raw(" Create  "),
-        Span::styled("[e]", Style::default().fg(Color::Cyan)),
+        Span::styled("[e]", Style::default().fg(SAPPHIRE)),
         Span::raw(" Edit  "),
-        Span::styled("[d]", Style::default().fg(Color::Cyan)),
+        Span::styled("[d]", Style::default().fg(SAPPHIRE)),
         Span::raw(" Delete  "),
-        Span::styled("[h/l]", Style::default().fg(Color::Cyan)),
+        Span::styled("[h/l]", Style::default().fg(SAPPHIRE)),
         Span::raw(" Focus Left/Right  "),
-        Span::styled("[j/k]", Style::default().fg(Color::Cyan)),
+        Span::styled("[j/k]", Style::default().fg(SAPPHIRE)),
         Span::raw(" Move/Scroll  "),
-        Span::styled("[g/G]", Style::default().fg(Color::Cyan)),
+        Span::styled("[g/G]", Style::default().fg(SAPPHIRE)),
         Span::raw(" Top/Bottom  "),
-        Span::styled("[space]", Style::default().fg(Color::Cyan)),
+        Span::styled("[space]", Style::default().fg(SAPPHIRE)),
         Span::raw(" Toggle Todo"),
     ]);
 
@@ -66,9 +95,63 @@ pub fn ui(f: &mut Frame, app: &App) {
             Block::default()
                 .title("Shortcuts")
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::Magenta)),
+                .border_style(Style::default().fg(MAROON)),
         );
     f.render_widget(shortcuts, main_layout[1]);
+}
+
+fn render_confirmation_modal(f: &mut Frame, app: &App) {
+    let area = centered_modal_area(f.area(), 40, 5);
+
+    let modal_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Min(4), Constraint::Length(1)].as_ref())
+        .split(area);
+
+    let block = Block::default()
+        .title("Delete")
+        .borders(Borders::ALL)
+        .style(Style::default().bg(TEXT));
+    let text = Paragraph::new(vec![
+            Line::from("Are you sure you"),
+            Line::from("want to delete this note?"),
+        ])
+        .block(block.clone())
+        .alignment(ratatui::layout::Alignment::Center);
+    f.render_widget(text, modal_chunks[0]);
+
+    let button_layout = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+        .split(modal_chunks[1]);
+
+    let yes_button_style = if app.selected_button == SelectedButton::Yes {
+        Style::default()
+            .fg(GREEN)
+            .bg(TEXT)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default().fg(TEXT)
+    };
+
+    let no_button_style = if app.selected_button == SelectedButton::No {
+        Style::default()
+            .fg(RED)
+            .bg(TEXT)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default().fg(TEXT)
+    };
+
+    let yes_button = Paragraph::new(" Yes ")
+        .alignment(ratatui::layout::Alignment::Center)
+        .style(yes_button_style);
+    let no_button = Paragraph::new(" No ")
+        .alignment(ratatui::layout::Alignment::Center)
+        .style(no_button_style);
+
+    f.render_widget(yes_button, button_layout[0]);
+    f.render_widget(no_button, button_layout[1]);
 }
 
 fn render_notes(f: &mut Frame, app: &App, chunks: &[Rect]) {
@@ -76,18 +159,14 @@ fn render_notes(f: &mut Frame, app: &App, chunks: &[Rect]) {
     let right_focus = matches!(app.focus, Focus::Right);
 
     let left_block_style = if left_focus {
-        Style::default()
-            .fg(Color::Green)
-            .add_modifier(Modifier::BOLD)
+        Style::default().fg(PEACH).add_modifier(Modifier::BOLD)
     } else {
-        Style::default().fg(Color::Green)
+        Style::default().fg(TEAL)
     };
     let right_block_style = if right_focus {
-        Style::default()
-            .fg(Color::Green)
-            .add_modifier(Modifier::BOLD)
+        Style::default().fg(PEACH).add_modifier(Modifier::BOLD)
     } else {
-        Style::default().fg(Color::Green)
+        Style::default().fg(TEAL)
     };
 
     let left_block = Block::default()
@@ -110,11 +189,11 @@ fn render_notes(f: &mut Frame, app: &App, chunks: &[Rect]) {
         .map(|(i, note)| {
             let style = if i == app.selected_note {
                 Style::default()
-                    .fg(Color::White)
-                    .bg(Color::DarkGray)
+                    .fg(CRUST)
+                    .bg(TEXT)
                     .add_modifier(Modifier::BOLD)
             } else {
-                Style::default().fg(Color::Gray)
+                Style::default().fg(SUBTEXT1)
             };
             ListItem::new(Line::from(Span::styled(note.title.clone(), style)))
         })
@@ -156,7 +235,6 @@ fn render_notes(f: &mut Frame, app: &App, chunks: &[Rect]) {
         let height = right_block.inner(chunks[1]).height;
         let visible_height = height as usize;
 
-        // Clamp note_scroll and selected_line
         let line_count = lines.len();
         let note_scroll = app.note_scroll;
         let selected_line = app.selected_line.min(line_count.saturating_sub(1));
@@ -171,8 +249,6 @@ fn render_notes(f: &mut Frame, app: &App, chunks: &[Rect]) {
             if i >= start && i < end {
                 let mut styled_line = line.clone();
                 if i == selected_line {
-                    // Highlight selected line
-                    // Apply a bold, reversed style
                     styled_line = Line::from(
                         styled_line
                             .spans
@@ -202,7 +278,6 @@ fn render_notes(f: &mut Frame, app: &App, chunks: &[Rect]) {
 }
 
 fn parse_markdown_to_lines(input: &str) -> Vec<Line> {
-    // Basic markdown parsing (similar to before)
     let parser = Parser::new_ext(input, Options::all());
     let mut lines = Vec::new();
     let mut current_line = String::new();
@@ -229,7 +304,6 @@ fn parse_markdown_to_lines(input: &str) -> Vec<Line> {
             },
             Event::End(tagend) => match tagend {
                 TagEnd::Heading { .. } => {
-                    // end heading
                     if !current_line.is_empty() {
                         lines.push(Line::from(Span::styled(
                             current_line.clone(),
@@ -283,4 +357,13 @@ fn parse_markdown_to_lines(input: &str) -> Vec<Line> {
     }
 
     lines
+}
+
+fn centered_modal_area(screen: Rect, width: u16, height: u16) -> Rect {
+    Rect {
+        x: (screen.width.saturating_sub(width)) / 2,
+        y: (screen.height.saturating_sub(height)) / 2,
+        width,
+        height,
+    }
 }

@@ -9,6 +9,12 @@ pub enum Focus {
     Right,
 }
 
+#[derive(PartialEq)]
+pub enum SelectedButton {
+    Yes,
+    No,
+}
+
 pub struct App {
     pub notes: Vec<Note>,
     pub selected_note: usize,
@@ -17,7 +23,9 @@ pub struct App {
     pub mode: Mode,
     pub focus: Focus,
     pub needs_redraw: bool,
-    pub selected_line: usize, // NEW
+    pub selected_line: usize,
+    pub confirm_delete: bool,
+    pub selected_button: SelectedButton,
 }
 
 impl App {
@@ -31,6 +39,8 @@ impl App {
             focus: Focus::Left,
             needs_redraw: false,
             selected_line: 0,
+            confirm_delete: false,
+            selected_button: SelectedButton::No,
         }
     }
 }

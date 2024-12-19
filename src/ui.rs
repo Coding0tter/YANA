@@ -9,31 +9,15 @@ use ratatui::{
     Frame,
 };
 
-const ROSEWATER: Color = Color::Rgb(220, 138, 120);
-const FLAMINGO: Color = Color::Rgb(221, 120, 120);
-const PINK: Color = Color::Rgb(234, 118, 203);
-const MAUVE: Color = Color::Rgb(136, 57, 239);
 const RED: Color = Color::Rgb(210, 15, 57);
 const MAROON: Color = Color::Rgb(230, 69, 83);
 const PEACH: Color = Color::Rgb(254, 100, 11);
-const YELLOW: Color = Color::Rgb(223, 142, 29);
 const GREEN: Color = Color::Rgb(64, 160, 43);
 const TEAL: Color = Color::Rgb(23, 146, 153);
-const SKY: Color = Color::Rgb(4, 165, 229);
 const SAPPHIRE: Color = Color::Rgb(32, 159, 181);
-const BLUE: Color = Color::Rgb(30, 102, 245);
-const LAVENDER: Color = Color::Rgb(114, 135, 253);
 const TEXT: Color = Color::Rgb(76, 79, 105);
 const SUBTEXT1: Color = Color::Rgb(92, 95, 119);
 const SUBTEXT0: Color = Color::Rgb(108, 111, 133);
-const OVERLAY2: Color = Color::Rgb(124, 127, 147);
-const OVERLAY1: Color = Color::Rgb(140, 143, 161);
-const OVERLAY0: Color = Color::Rgb(156, 160, 176);
-const SURFACE2: Color = Color::Rgb(172, 176, 190);
-const SURFACE1: Color = Color::Rgb(188, 192, 204);
-const SURFACE0: Color = Color::Rgb(204, 208, 218);
-const BASE: Color = Color::Rgb(239, 241, 245);
-const MANTLE: Color = Color::Rgb(230, 233, 239);
 const CRUST: Color = Color::Rgb(220, 224, 232);
 
 pub fn ui(f: &mut Frame, app: &App) {
@@ -113,11 +97,11 @@ fn render_confirmation_modal(f: &mut Frame, app: &App) {
         .borders(Borders::ALL)
         .style(Style::default().bg(TEXT));
     let text = Paragraph::new(vec![
-            Line::from("Are you sure you"),
-            Line::from("want to delete this note?"),
-        ])
-        .block(block.clone())
-        .alignment(ratatui::layout::Alignment::Center);
+        Line::from("Are you sure you"),
+        Line::from("want to delete this note?"),
+    ])
+    .block(block.clone())
+    .alignment(ratatui::layout::Alignment::Center);
     f.render_widget(text, modal_chunks[0]);
 
     let button_layout = Layout::default()

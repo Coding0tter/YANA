@@ -179,7 +179,17 @@ fn render_notes(f: &mut Frame, app: &App, chunks: &[Rect]) {
             } else {
                 Style::default().fg(SUBTEXT1)
             };
-            ListItem::new(Line::from(Span::styled(note.title.clone(), style)))
+
+            let (open, closed) = count_todos(&note.content);
+            let mut display_title = String::new();
+            if open == 0 && closed > 0 {
+                display_title.push('✓');
+                display_title.push(' ');
+            }
+            display_title.push_str(&note.title);
+            display_title.push_str(&format!(" ({}/{})", open, closed));
+
+            ListItem::new(Line::from(Span::styled(display_title, style)))
         })
         .collect();
 

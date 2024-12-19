@@ -22,7 +22,7 @@ pub fn load_notes() -> Vec<Note> {
     Vec::new()
 }
 
-pub fn save_notes(notes: &Vec<Note>) {
+pub fn save_notes(notes: &[Note]) {
     let notes_file = notes_path();
     if let Ok(data) = serde_json::to_string_pretty(notes) {
         let _ = std::fs::write(notes_file, data);

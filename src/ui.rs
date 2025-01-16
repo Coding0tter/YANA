@@ -187,7 +187,10 @@ fn render_notes(f: &mut Frame, app: &App, chunks: &[Rect]) {
                 display_title.push(' ');
             }
             display_title.push_str(&note.title);
-            display_title.push_str(&format!(" ({}/{})", open, closed));
+
+            if (open + closed) > 0 {
+                display_title.push_str(&format!(" ({}/{})", open, closed));
+            }
 
             ListItem::new(Line::from(Span::styled(display_title, style)))
         })
@@ -212,10 +215,14 @@ fn render_notes(f: &mut Frame, app: &App, chunks: &[Rect]) {
         .title(if !app.notes.is_empty() {
             let curr_note = &app.notes[app.selected_note];
             let (open, closed) = count_todos(&curr_note.content);
-            format!(
-                " {} (Todos: {} open / {} done) ",
-                curr_note.title, open, closed
-            )
+            if (open + closed) > 0 {
+                format!(
+                    " {} (Todos: {} open / {} done) ",
+                    curr_note.title, open, closed
+                )
+            } else {
+                format!(" {} ", curr_note.title)
+            }
         } else {
             " No Notes ".to_string()
         })
